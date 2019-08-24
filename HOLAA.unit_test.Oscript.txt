@@ -5,9 +5,8 @@ change $aa_to_test and $unit_tester_address
 */
    "autonomous agent",{ 
 		init: "{
-         $aa_to_test = "PZJCOR5LXG2EGVLCD27EGKCIIP3V4EOU";
-         $unit_tester_address = "MYESSCFGDERS3YIEGNZDOG2BI5HKQHLU";
-         $listtest_name = "jaaws";
+         $aa_to_test = "5BRALFFKNML53X4MJVTWBSBYSDSNRIHQ";
+         $listtest_name = "jaaws"||timestamp;
 		}",
 	   	messages: {
 			cases: [
@@ -17,6 +16,26 @@ change $aa_to_test and $unit_tester_address
                   	{ 
 							app: 'data', payload: {
                         create: "{$listtest_name}",
+							}
+						},
+						{ 
+							app: 'payment', payload: {
+								asset: "{'base'}",
+								outputs: [{
+									address: "{$aa_to_test}", 
+									amount: "{trigger.output[[asset=base]] - 1000}" 
+								}]
+							}
+						},
+					]
+				},
+            { // create account with 3 parties
+					if: "{ trigger.data.cp  }",
+					messages: [
+                  	{ 
+							app: 'data', payload: {
+                        create: "{$listtest_name||2}",
+                        public: "{true}",
 							}
 						},
 						{ 
