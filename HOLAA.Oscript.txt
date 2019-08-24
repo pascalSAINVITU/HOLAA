@@ -17,11 +17,7 @@ Holder of Lists AA
 			$aa_name = "AAAA"; // Dynamic Asset Names Autonomous Agent;
 			$owner = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; // could withdraw the dust is calculable.
 			
-         //$j = json_stringify(trigger.data); // all inputs;
-         //$i = json_parse($j);
          $i = trigger.data;
-
-         
 		}",
 	   	messages: {
 			cases: [
@@ -29,13 +25,15 @@ Holder of Lists AA
 					if: "{ $i.create }",
 					init: "{
                   $list_name = $i.create;
+                  if (var[$list_name])
+                     bounce ("'"||$list_name||"' already exist!");
 					}",
 					messages: [
 						{ 
 							app: "state", state: "{
                         var[$list_name] = trigger.address; //owner of the list;
                         var[$list_name||"_count"] = 0 ;
-
+                        var[$list_name||"_is_public"] = $i.public;
                         response['message'] = $list_name||" created ^^.";
 							}"
 						}
@@ -49,6 +47,9 @@ Holder of Lists AA
                      bounce ("Need 'list_name'!");
                   if (!(var[$list_name]))
                      bounce ("'"||$list_name||"' do not exist!");
+                  if (!(var[$list_name||"_is_public"]))
+                     if (trigger.address != var[$list_name])
+                        bounce ("You don't own this private list");
                   $new_entry =  $i.add;
 					}",
 					messages: [
@@ -70,7 +71,7 @@ Holder of Lists AA
                   if (!(var[$list_name]))
                      bounce ("'"||$i.list_name||"' did not exist at the first place!");
                   if (trigger.address != var[$list_name])
-                     bounce ("Must be ownner to delete");
+                     bounce ("Must be owner to delete the list");
                   if (var[$list_name||"_count"] > 0)
                      bounce ("List must be empty to be deleted, use 'remove_last' as much as needed");
 					}",
@@ -92,7 +93,7 @@ Holder of Lists AA
                   if (!(var[$list_name]))
                      bounce ("'"||$i.list_name||"' did not exist !");
                   if (trigger.address != var[$list_name])
-                     bounce ("Must be ownner to remove last entry of the list");
+                     bounce ("Must be owner to remove last entry of the list");
                   if (var[$list_name||"_count"] == 0)
                      bounce ("List is empty!");
 					}",
