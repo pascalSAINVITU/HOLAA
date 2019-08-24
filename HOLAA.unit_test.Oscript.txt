@@ -1,0 +1,130 @@
+[ 
+/*
+change $aa_to_test and $unit_tester_address
+
+*/
+   "autonomous agent",{ 
+		init: "{
+         $aa_to_test = "PZJCOR5LXG2EGVLCD27EGKCIIP3V4EOU";
+         $unit_tester_address = "MYESSCFGDERS3YIEGNZDOG2BI5HKQHLU";
+         $listtest_name = "jaaws";
+		}",
+	   	messages: {
+			cases: [
+				{ // create account with 3 parties
+					if: "{ trigger.data.c  }",
+					messages: [
+                  	{ 
+							app: 'data', payload: {
+                        create: "{$listtest_name}",
+							}
+						},
+						{ 
+							app: 'payment', payload: {
+								asset: "{'base'}",
+								outputs: [{
+									address: "{$aa_to_test}", 
+									amount: "{trigger.output[[asset=base]] - 1000}" 
+								}]
+							}
+						},
+					]
+				},
+            { // inti a pay
+					if: "{ trigger.data.aa }",
+               init: "{
+                  $listcount = var[$aa_to_test][$listtest_name||"_count"];
+               }",
+					messages: [
+                  	{ 
+							app: 'data', payload: {
+                        list_name: "{$listtest_name}",
+                        add: "{"element999"}",
+							}
+						},
+						{ 
+							app: 'payment', payload: {
+								asset: "{'base'}",
+								outputs: [{
+									address: "{$aa_to_test}", 
+									amount: "{trigger.output[[asset=base]] - 1000}" 
+								}]
+							}
+						},
+					]
+				},
+            { // inti a pay
+					if: "{ trigger.data.a }",
+               init: "{
+                  $listcount = var[$aa_to_test][$listtest_name||"_count"];
+               }",
+					messages: [
+                  	{ 
+							app: 'data', payload: {
+                        list_name: "{$listtest_name}",
+                        add: "{"element"||($listcount+1)}",
+							}
+						},
+						{ 
+							app: 'payment', payload: {
+								asset: "{'base'}",
+								outputs: [{
+									address: "{$aa_to_test}", 
+									amount: "{trigger.output[[asset=base]] - 1000}" 
+								}]
+							}
+						},
+					]
+				},
+            { // inti a pay
+					if: "{ trigger.data.r }",
+               init: "{
+               }",
+					messages: [
+                  	{ 
+							app: 'data', payload: {
+                        remove_last: "{$listtest_name}",
+							}
+						},
+						{ 
+							app: 'payment', payload: {
+								asset: "{'base'}",
+								outputs: [{
+									address: "{$aa_to_test}", 
+									amount: "{trigger.output[[asset=base]] - 1000}" 
+								}]
+							}
+						},
+					]
+				},
+            { // inti a pay
+					if: "{ trigger.data.d }",
+					messages: [
+                  	{ 
+							app: 'data', payload: {
+                        delete: "{$listtest_name}",
+							}
+						},
+						{ 
+							app: 'payment', payload: {
+								asset: "{'base'}",
+								outputs: [{
+									address: "{$aa_to_test}", 
+									amount: "{trigger.output[[asset=base]] - 1000}" 
+								}]
+							}
+						},
+					]
+				},
+				{ // default case
+					messages: [
+						{ 
+							app: "state", state: "{
+							}"
+						}
+					]
+				}
+			]
+		}
+	}
+]
