@@ -1,0 +1,126 @@
+[ 
+/*
+# HOLAA
+Holder of Lists AA
+
+## use cases / inpuit fields associations
+* Create a list: 'create' = <list name>;
+* Add element to existing list: 'list_name' = <existing list name>, 'add' = <element>;
+* Remove last added element: 'remove_last' = <existing list name>;
+* Delete existing list: 'delete' = <existing list name>;
+* Find the position of an element in an existing list: var[<HOLAA address>][<existing list name>_<element>];
+* Find the element at a given position in an existing list: var[<HOLAA address>][<existing list name>_<position>];
+
+*/
+   "autonomous agent",{ 
+		init: "{
+			$aa_name = "AAAA"; // Dynamic Asset Names Autonomous Agent;
+			$owner = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; // could withdraw the dust is calculable.
+			
+         //$j = json_stringify(trigger.data); // all inputs;
+         //$i = json_parse($j);
+         $i = trigger.data;
+
+         
+		}",
+	   	messages: {
+			cases: [
+				{ // create a list
+					if: "{ $i.create }",
+					init: "{
+                  $list_name = $i.create;
+					}",
+					messages: [
+						{ 
+							app: "state", state: "{
+                        var[$list_name] = trigger.address; //owner of the list;
+                        var[$list_name||"_count"] = 0 ;
+
+                        response['message'] = $list_name||" created ^^.";
+							}"
+						}
+					]
+				},
+            { // add a element is list
+					if: "{ $i.add }",
+					init: "{
+                  $list_name = $i.list_name;
+                  if (!$list_name) 
+                     bounce ("Need 'list_name'!");
+                  if (!(var[$list_name]))
+                     bounce ("'"||$list_name||"' do not exist!");
+                  $new_entry =  $i.add;
+					}",
+					messages: [
+						{ 
+							app: "state", state: "{
+                        var[$list_name||"_count"] +=1;
+                        var[$list_name||"_"||$new_entry] = var[$list_name||"_count"];
+                        var[$list_name||"_"||var[$list_name||"_count"]] = $new_entry;
+                        
+                        response['message']= $new_entry||" added ^^.";
+							}"
+						}
+					]
+				},
+            { // delete list
+					if: "{ $i.delete }",
+					init: "{
+                  $list_name = $i.delete;
+                  if (!(var[$list_name]))
+                     bounce ("'"||$i.list_name||"' did not exist at the first place!");
+                  if (trigger.address != var[$list_name])
+                     bounce ("Must be ownner to delete");
+                  if (var[$list_name||"_count"] > 0)
+                     bounce ("List must be empty to be deleted, use 'remove_last' as much as needed");
+					}",
+					messages: [
+						{ 
+							app: "state", state: "{
+                        var[$list_name] = false;
+                        var[$list_name||"_count"] = false;
+                        
+                        response['message']= $list_name||" delete ^^.";
+							}"
+						}
+					]
+				},
+            { // remove last
+					if: "{ $i.remove_last }",
+					init: "{
+                  $list_name = $i.remove_last;
+                  if (!(var[$list_name]))
+                     bounce ("'"||$i.list_name||"' did not exist !");
+                  if (trigger.address != var[$list_name])
+                     bounce ("Must be ownner to remove last entry of the list");
+                  if (var[$list_name||"_count"] == 0)
+                     bounce ("List is empty!");
+					}",
+					messages: [
+						{ 
+							app: "state", state: "{
+                        // get last entry
+                        $last_entry = var[$list_name||"_"||var[$list_name||"_count"]];
+                        // remove it
+                        var[$list_name||"_"||$last_entry] = false;
+                        var[$list_name||"_"||var[$list_name||"_count"]] = false;
+                        var[$list_name||"_count"] -= 1;
+
+                        response['message']= $last_entry||" removed ^^.";
+							}"
+						}
+					]
+				},
+				{ // default case
+					messages: [
+						{ 
+							app: "state", state: "{
+								bounce ("default case");
+							}"
+						}
+					]
+				}
+			]
+		}
+	}
+]
