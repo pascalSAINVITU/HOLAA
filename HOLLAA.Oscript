@@ -27,12 +27,15 @@ Agent address: TZGEUJRZJAQAUTGOOUXBOJU3ZALRLGID
 Check in explorer: https://testnetexplorer.obyte.org/#M+uKb+5yPfapW+XxbnDmvzjSs6KXVHfbBnovzAsJPY0=
 Agent address: RNENY255HZRUH6R2JV7P7AODKCA3ZKAN
 
+Check in explorer: https://testnetexplorer.obyte.org/#Z03NhPXFhHlEP8L4oNTnIbV6dGEj/tT6L66/crUdTnM=
+Agent address: KAAHKDVSTT3RWCV3RNGC5UJ4JGXQIJ7D
+
 */
     "init": "{
         // FOREVER CONSTANT
             $AA_NAME= "HOLLAA"; // Holder Of Linked List AA;
             $AA_OWNER = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; 
-            $INSTRUCTIONS = "To add an element at the end of the list use 'list_name = <list name>'', 'add = <item name>' + 'value = <itemvalue>'";
+            $INSTRUCTIONS = "For every operation 'list_name = <list name>' is needed. To add an element at the end of the list use ', 'add = <item name>' and optionaly 'value = <item value>'. To remove 'remove = <item name>'. You can insert with 'insert = <item name>', 'after/before = <ref item name>' and optionaly 'value = <item value>'. When the list s empty, you can delete it with 'delete = true'. If you need to iterate you might find useful to be triggered back with the next or previous item, use 'get_next/get_previous = <actual item name>'.";
 
         // get info from state or input data
             $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!");
