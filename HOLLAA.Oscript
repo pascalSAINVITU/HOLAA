@@ -15,6 +15,11 @@ Agent address: JALVMPTTOIO5IGDCRSRHE65DAV2H4EF7
 Check in explorer: https://testnetexplorer.obyte.org/#g7dl4AKaqkgfRuinabruK6ykdOllt4BXWTCa0qVwoao=
 Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
 
+Check in explorer: https://testnetexplorer.obyte.org/#eBQjDpsFu+j4PwScjrb+ZC5tbOM0dr/w3SDrKfADUSU=
+Agent address: 7BZWHDRJOHXPCPHR6QIO6Y36VADRW4SS
+
+Check in explorer: https://testnetexplorer.obyte.org/#e6Ctzezx0524GPIdY/CkkhTZMzuqRPLy6cw2MMOyQxk=
+Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
 */
     "init": "{
         $AA_NAME= "HOLAAAA"; // Dynamic Asset Names Autonomous Agent;
@@ -25,9 +30,9 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
             $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!");
 
             $list_owner = var[$list_name||"_owner"] otherwise trigger.address;
-            $list_count = var[$list_name||"_count"] otherwise 0;
-            $list_public = var[$list_name||"_public"] otherwise $i.public;
-            if (!$list_public) if (trigger.address != $list_owner) bounce ("You don't own this private list");
+            $list_items_count = var[$list_name||"_items_count"] otherwise 0;
+            $list_is_public = var[$list_name||"_is_public"] otherwise trigger.data.public;
+            if (!$list_is_public) if (trigger.address != $list_owner) bounce ("You don't own this private list");
     }",
     "messages": {
         "cases": [
@@ -40,20 +45,20 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
                         "app": "state", "state": "{
                             // update list state
                                 var[$list_name||"_owner"] = $list_owner;
-                                var[$list_name||"_count"] = $list_count + 1;
-                                var[$list_name||"_public"] = $list_public;
+                                var[$list_name||"_items_count"] = $list_items_count + 1;
+                                var[$list_name||"_is_public"] = $list_is_public;
 
                             // update last item
-                                $last_item = var[$list_name||"_last"];
+                                $last_item = var[$list_name||"_last_item"];
                                 if (!!$last_item)
-                                    var[$last_item||"_next"] = $item_key;
-                                var[$list_name||"_last"] = $item_key;
-                                if (var[$list_name||"_count"] == 1 ) var[$list_name||"_first"] = $item_key;
+                                    var[$last_item||"_next_item"] = $item_key;
+                                var[$list_name||"_last_item"] = $item_key;
+                                if (var[$list_name||"_items_count"] == 1 ) var[$list_name||"_first_item"] = $item_key;
 
                             // add new item at the end of the linked list
-                                var[$item_key] = trigger.data.value;
-                                var[$item_key||"_previous"] = $last_item;
-                                var[$item_key||"_next"] = false;
+                                var[$item_key] = trigger.data.value otherwise true;
+                                var[$item_key||"_previous_item"] = $last_item;
+                                var[$item_key||"_next_item"] = false;
 
                             response['message']= $item_key||" added ^^.";
                         }"
@@ -69,20 +74,20 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
                     {
                         "app": "state", "state": "{
                             // update list state
-                                var[$list_name||"_count"] = $list_count - 1;
+                                var[$list_name||"_items_count"] = $list_items_count - 1;
                                 
                             // update link in previous item
-                                $previous_item = var[$item_key||"_previous"];
-                                var[$previous_item||"_next"] = $next_item;
+                                $previous_item = var[$item_key||"_previous_item"];
+                                var[$previous_item||"_next_item"] = $next_item;
 
                             // update link in next item
-                                $next_item = var[$item_key||"_next"];
-                                var[$next_item||"_previous"] = $previous_item;
+                                $next_item = var[$item_key||"_next_item"];
+                                var[$next_item||"_previous_item"] = $previous_item;
 
                             // remove item
                                 var[$item_key] = false;
-                                var[$item_key||"_previous"] = false;
-                                var[$item_key||"_next"] = false;
+                                var[$item_key||"_previous_item"] = false;
+                                var[$item_key||"_next_item"] = false;
 
                             response['message']= $item_key||" removed ^^.";
                         }"
@@ -98,7 +103,7 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
                         {
                             $previous_item = $list_name||"_"||trigger.data.after;
                             if (!var[$previous_item]) bounce ($previous_item||" do NOT exist !");
-                            $next_item = var[$previous_item||"_next"];
+                            $next_item = var[$previous_item||"_next_item"];
                         }
                         else
                         {
@@ -106,7 +111,7 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
                             {
                                 $next_item = $list_name||"_"||trigger.data.before;
                                 if (!var[$next_item]) bounce ($next_item||" do NOT exist !");
-                                $previous_item = var[$next_item||"_previous"];
+                                $previous_item = var[$next_item||"_previous_item"];
                             }
                             else
                             {
@@ -118,24 +123,24 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
                     {
                         "app": "state", "state": "{
                             // update list state
-                                var[$list_name||"_count"] = $list_count + 1;
+                                var[$list_name||"_items_count"] = $list_items_count + 1;
 
                             // update previous item link
                                 if (!!$previous_item)
-                                    var[$previous_item||"_next"] = $item_key;
+                                    var[$previous_item||"_next_item"] = $item_key;
                                 else
-                                    var[$list_name||"_first"] = $item_key;
+                                    var[$list_name||"_first_item"] = $item_key;
 
                             // update next item link
                                 if (!!$next_item)
-                                    var[$next_item||"_previous"] = $item_key;
+                                    var[$next_item||"_previous_item"] = $item_key;
                                 else
-                                    var[$list_name||"_last"] = $item_key;
+                                    var[$list_name||"_last_item"] = $item_key;
 
                             // add new item 
-                                var[$item_key] = trigger.data.value;
-                                var[$item_key||"_previous"] = $previous_item;
-                                var[$item_key||"_next"] = $next_item;
+                                var[$item_key] = trigger.data.value otherwise true;
+                                var[$item_key||"_previous_item"] = $previous_item;
+                                var[$item_key||"_next_item"] = $next_item;
 
                             response['message']= $item_key||" added ^^.";
                         }"
@@ -145,15 +150,15 @@ Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
             { "if": "{ trigger.data.delete }",  // delete completely the list if empty
                 "init": "{
                     if (!var[$list_name]) bounce ("'"||$i.list_name||"' did not exist at the first place!");
-                    if (var[$list_name||"_count"] > 0) bounce ("List must be empty to be deleted, use 'remove_last' as much as needed");
+                    if (var[$list_name||"_items_count"] > 0) bounce ("List must be empty to be deleted, use 'remove_last_item' as much as needed");
                 }",
                 "messages": [
                     {
                         "app": "state",
                         "state": "{
                             var[$list_name||"_owner"] = false;
-                            var[$list_name||"_count"] = false;
-                            var[$list_name||"_public"] = false;
+                            var[$list_name||"_items_count"] = false;
+                            var[$list_name||"_is_public"] = false;
 
                             response['message']= $list_name||" delete ^^.";
                         }"
