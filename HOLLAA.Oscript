@@ -6,29 +6,8 @@ HOLLAA, Holder Of Linked List AA
 Check in explorer: https://testnetexplorer.obyte.org/#0eA8pLQ7z8ZiGzmxDoCI+izcyjuAlwN+MQsG/4x9Wkc=
 Agent address: RIWHUVJMQA5DJHK3AOUK5ZBPFFYW5I3J
 
-Check in explorer: https://testnetexplorer.obyte.org/#oo3W23PDalNtv54rHmKRyjvXbUOcDqQqubYXvJZ5BHM=
-Agent address: WW4ZYHT5E4WE62GWHZATT7J67AZSIAOY
-
-Check in explorer: https://testnetexplorer.obyte.org/#Mcj5NDSq3CkYERgurzDh5ipNvk+nktmx7uZRUfLjKfk=
-Agent address: JALVMPTTOIO5IGDCRSRHE65DAV2H4EF7
-
-Check in explorer: https://testnetexplorer.obyte.org/#g7dl4AKaqkgfRuinabruK6ykdOllt4BXWTCa0qVwoao=
-Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
-
-Check in explorer: https://testnetexplorer.obyte.org/#eBQjDpsFu+j4PwScjrb+ZC5tbOM0dr/w3SDrKfADUSU=
-Agent address: 7BZWHDRJOHXPCPHR6QIO6Y36VADRW4SS
-
-Check in explorer: https://testnetexplorer.obyte.org/#e6Ctzezx0524GPIdY/CkkhTZMzuqRPLy6cw2MMOyQxk=
-Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
-
-Check in explorer: https://testnetexplorer.obyte.org/#ithqmNdHlFfL/oFfmPzxZVG49WffR9jC9V4A2cMSjrc=
-Agent address: TZGEUJRZJAQAUTGOOUXBOJU3ZALRLGID
-
-Check in explorer: https://testnetexplorer.obyte.org/#M+uKb+5yPfapW+XxbnDmvzjSs6KXVHfbBnovzAsJPY0=
-Agent address: RNENY255HZRUH6R2JV7P7AODKCA3ZKAN
-
-Check in explorer: https://testnetexplorer.obyte.org/#Z03NhPXFhHlEP8L4oNTnIbV6dGEj/tT6L66/crUdTnM=
-Agent address: KAAHKDVSTT3RWCV3RNGC5UJ4JGXQIJ7D
+Check in explorer: https://testnetexplorer.obyte.org/#oAe1gB3okm01Nc4+fO4egk+3GYZklaiFMUjkWuvQRJE=
+Agent address: X3MVQHTNJ6JKUASR7IT4X7A3WHULKAYC
 
 */
     "init": "{
@@ -179,47 +158,41 @@ Agent address: KAAHKDVSTT3RWCV3RNGC5UJ4JGXQIJ7D
             },
             { "if": "{ !!trigger.data.get_next }", // add a new item at the end of the linked list
                 "init": "{
-                    $item_key = $list_name||"_"||trigger.data.get_next;
+                    $starting_key = var[$list_name||"_"||trigger.data.get_next];
+                    $next_item = !!$starting_key ? var[$starting_key||"_next_item"] : var[$list_name||"_first_item"];
                 }",
                 "messages": [
                     {
                         "app": "data", "payload": {
-                            "item_name": "{ var[$item_key||"_next_item"] }",
-                            "item_value": "{ var[var[$item_key||"_next_item"]] }"
+                            "item_name": "{ $next_item }",
+                            "item_value": "{ var[$next_item] }",
+                            "token": "{ trigger.data.token }" // send back the incoming token 
                         }
                     },
                     {
-                        "app": "payment", "payload": {
-                            "outputs": [
-                                {
-                                    "address": "{ trigger.address }",
-                                    "amount": "{4}"
-                                }
-                            ]
-                        }
+                        "app": "payment", "payload": {  "outputs": [
+                            { "address": "{ trigger.address }", "amount": "{4}" }
+                        ] }
                     }
                 ]
             },
             { "if": "{ !!trigger.data.get_previous }", // add a new item at the end of the linked list
                 "init": "{
-                    $item_key = $list_name||"_"||trigger.data.get_previous;
+                    $starting_key = var[$list_name||"_"||trigger.data.get_previous];
+                    $previous_item = !!$starting_key ? var[$starting_key||"_previous_item"] : var[$list_name||"_last_item"];
                 }",
                 "messages": [
                     {
                         "app": "data", "payload": {
-                            "item_name": "{ var[$item_key||"_previous_item"] }",
-                            "item_value": "{ var[var[$item_key||"_previous_item"]] }"
+                            "item_name": "{ $previous_item }",
+                            "item_value": "{ var[$previous_item] }",
+                            "token": "{ trigger.data.token }"// send back the incoming token 
                         }
                     },
                     {
-                        "app": "payment", "payload": {
-                            "outputs": [
-                                {
-                                    "address": "{ trigger.address }",
-                                    "amount": "{4}"
-                                }
-                            ]
-                        }
+                        "app": "payment", "payload": { "outputs": [
+                            { "address": "{ trigger.address }", "amount": "{4}" }
+                        ] }
                     }
                 ]
             },
