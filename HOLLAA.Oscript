@@ -24,19 +24,24 @@ Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
 Check in explorer: https://testnetexplorer.obyte.org/#ithqmNdHlFfL/oFfmPzxZVG49WffR9jC9V4A2cMSjrc=
 Agent address: TZGEUJRZJAQAUTGOOUXBOJU3ZALRLGID
 
+Check in explorer: https://testnetexplorer.obyte.org/#M+uKb+5yPfapW+XxbnDmvzjSs6KXVHfbBnovzAsJPY0=
+Agent address: RNENY255HZRUH6R2JV7P7AODKCA3ZKAN
+
 */
     "init": "{
-        $AA_NAME= "HOLAAAA"; // Dynamic Asset Names Autonomous Agent;
-        $AA_OWNER = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; // could withdraw the dust is calculable.
-        $INSTRUCTIONS = "To add an element at the end of the list use 'list_name = <list name>'', 'add = <item name>' + 'value = <itemvalue>'";
+        // FOREVER CONSTANT
+            $AA_NAME= "HOLLAA"; // Holder Of Linked List AA;
+            $AA_OWNER = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; 
+            $INSTRUCTIONS = "To add an element at the end of the list use 'list_name = <list name>'', 'add = <item name>' + 'value = <itemvalue>'";
 
         // get info from state or input data
             $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!");
-
             $list_owner = var[$list_name||"_owner"] otherwise trigger.address;
             $list_items_count = var[$list_name||"_items_count"] otherwise 0;
-            $list_is_public = var[$list_name||"_is_public"] otherwise trigger.data.public;
-            if (!$list_is_public) if (trigger.address != $list_owner) bounce ("You don't own this private list");
+            // access checking
+                $list_is_public = var[$list_name||"_is_public"] otherwise trigger.data.public;
+                if (!$list_is_public) if (trigger.address != $list_owner)
+                    bounce ("You don't own this private list");
     }",
     "messages": {
         "cases": [
