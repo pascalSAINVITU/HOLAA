@@ -1,0 +1,168 @@
+{
+/*
+
+HOLLAA, Holder Of Linked List AA
+
+Check in explorer: https://testnetexplorer.obyte.org/#0eA8pLQ7z8ZiGzmxDoCI+izcyjuAlwN+MQsG/4x9Wkc=
+Agent address: RIWHUVJMQA5DJHK3AOUK5ZBPFFYW5I3J
+
+Check in explorer: https://testnetexplorer.obyte.org/#oo3W23PDalNtv54rHmKRyjvXbUOcDqQqubYXvJZ5BHM=
+Agent address: WW4ZYHT5E4WE62GWHZATT7J67AZSIAOY
+
+Check in explorer: https://testnetexplorer.obyte.org/#Mcj5NDSq3CkYERgurzDh5ipNvk+nktmx7uZRUfLjKfk=
+Agent address: JALVMPTTOIO5IGDCRSRHE65DAV2H4EF7
+
+Check in explorer: https://testnetexplorer.obyte.org/#g7dl4AKaqkgfRuinabruK6ykdOllt4BXWTCa0qVwoao=
+Agent address: RNYTTN2B5LM2YNRQTJJN3OHDY3P4LT5M
+
+*/
+    "init": "{
+        $AA_NAME= "HOLAAAA"; // Dynamic Asset Names Autonomous Agent;
+        $AA_OWNER = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; // could withdraw the dust is calculable.
+        $INSTRUCTIONS = "To add an element at the end of the list use 'list_name = <list name>'', 'add = <item name>' + 'value = <itemvalue>'";
+
+        // get info from state or input data
+            $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!");
+
+            $list_owner = var[$list_name||"_owner"] otherwise trigger.address;
+            $list_count = var[$list_name||"_count"] otherwise 0;
+            $list_public = var[$list_name||"_public"] otherwise $i.public;
+            if (!$list_public) if (trigger.address != $list_owner) bounce ("You don't own this private list");
+    }",
+    "messages": {
+        "cases": [
+            { "if": "{ !!trigger.data.add }", // add a new item at the end of the linked list
+                "init": "{
+                    $item_key = $list_name||"_"||trigger.data.add;
+                }",
+                "messages": [
+                    {
+                        "app": "state", "state": "{
+                            // update list state
+                                var[$list_name||"_owner"] = $list_owner;
+                                var[$list_name||"_count"] = $list_count + 1;
+                                var[$list_name||"_public"] = $list_public;
+
+                            // update last item
+                                $last_item = var[$list_name||"_last"];
+                                if (!!$last_item)
+                                    var[$last_item||"_next"] = $item_key;
+                                var[$list_name||"_last"] = $item_key;
+                                if (var[$list_name||"_count"] == 1 ) var[$list_name||"_first"] = $item_key;
+
+                            // add new item at the end of the linked list
+                                var[$item_key] = trigger.data.value;
+                                var[$item_key||"_previous"] = $last_item;
+                                var[$item_key||"_next"] = false;
+
+                            response['message']= $item_key||" added ^^.";
+                        }"
+                    }
+                ]
+            },
+            { "if": "{ !!trigger.data.remove }", // remove a given key from the linked list
+                "init": "{
+                    if (!(var[$list_name])) bounce ("'"||$list_name||"' did not exist !");
+                    $item_key = $list_name||"_"||trigger.data.remove;
+                }",
+                "messages": [
+                    {
+                        "app": "state", "state": "{
+                            // update list state
+                                var[$list_name||"_count"] = $list_count - 1;
+                                
+                            // update link in previous item
+                                $previous_item = var[$item_key||"_previous"];
+                                var[$previous_item||"_next"] = $next_item;
+
+                            // update link in next item
+                                $next_item = var[$item_key||"_next"];
+                                var[$next_item||"_previous"] = $previous_item;
+
+                            // remove item
+                                var[$item_key] = false;
+                                var[$item_key||"_previous"] = false;
+                                var[$item_key||"_next"] = false;
+
+                            response['message']= $item_key||" removed ^^.";
+                        }"
+                    }
+                ]
+            },  
+            { "if": "{ !!trigger.data.insert }", // add a new item at the end of the linked list
+                "init": "{
+                    $item_key = $list_name||"_"||trigger.data.insert;
+
+                    // identify previosu and next items
+                        if (!!trigger.data.after)
+                        {
+                            $previous_item = $list_name||"_"||trigger.data.after;
+                            if (!var[$previous_item]) bounce ($previous_item||" do NOT exist !");
+                            $next_item = var[$previous_item||"_next"];
+                        }
+                        else
+                        {
+                            if (!!trigger.data.before)
+                            {
+                                $next_item = $list_name||"_"||trigger.data.before;
+                                if (!var[$next_item]) bounce ($next_item||" do NOT exist !");
+                                $previous_item = var[$next_item||"_previous"];
+                            }
+                            else
+                            {
+                                bounce ("Please, specify 'after' or 'before'");
+                            }
+                        }
+                }",
+                "messages": [
+                    {
+                        "app": "state", "state": "{
+                            // update list state
+                                var[$list_name||"_count"] = $list_count + 1;
+
+                            // update previous item link
+                                if (!!$previous_item)
+                                    var[$previous_item||"_next"] = $item_key;
+                                else
+                                    var[$list_name||"_first"] = $item_key;
+
+                            // update next item link
+                                if (!!$next_item)
+                                    var[$next_item||"_previous"] = $item_key;
+                                else
+                                    var[$list_name||"_last"] = $item_key;
+
+                            // add new item 
+                                var[$item_key] = trigger.data.value;
+                                var[$item_key||"_previous"] = $previous_item;
+                                var[$item_key||"_next"] = $next_item;
+
+                            response['message']= $item_key||" added ^^.";
+                        }"
+                    }
+                ]
+            },
+            { "if": "{ trigger.data.delete }",  // delete completely the list if empty
+                "init": "{
+                    if (!var[$list_name]) bounce ("'"||$i.list_name||"' did not exist at the first place!");
+                    if (var[$list_name||"_count"] > 0) bounce ("List must be empty to be deleted, use 'remove_last' as much as needed");
+                }",
+                "messages": [
+                    {
+                        "app": "state",
+                        "state": "{
+                            var[$list_name||"_owner"] = false;
+                            var[$list_name||"_count"] = false;
+                            var[$list_name||"_public"] = false;
+
+                            response['message']= $list_name||" delete ^^.";
+                        }"
+                    }
+                ]
+            },
+            {   // bounce isntructions
+                "messages": [ { "app": "state", "state": "{ bounce ($INSTRUCTIONS);}" } ]  
+            }
+        ]
+    }
+}
