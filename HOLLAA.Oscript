@@ -20,6 +20,10 @@ Agent address: 7BZWHDRJOHXPCPHR6QIO6Y36VADRW4SS
 
 Check in explorer: https://testnetexplorer.obyte.org/#e6Ctzezx0524GPIdY/CkkhTZMzuqRPLy6cw2MMOyQxk=
 Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
+
+Check in explorer: https://testnetexplorer.obyte.org/#ithqmNdHlFfL/oFfmPzxZVG49WffR9jC9V4A2cMSjrc=
+Agent address: TZGEUJRZJAQAUTGOOUXBOJU3ZALRLGID
+
 */
     "init": "{
         $AA_NAME= "HOLAAAA"; // Dynamic Asset Names Autonomous Agent;
@@ -67,7 +71,7 @@ Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
             },
             { "if": "{ !!trigger.data.remove }", // remove a given key from the linked list
                 "init": "{
-                    if (!(var[$list_name])) bounce ("'"||$list_name||"' did not exist !");
+                    if (!(var[$list_name||"_owner"])) bounce ("'"||$list_name||"' did not exist !");
                     $item_key = $list_name||"_"||trigger.data.remove;
                 }",
                 "messages": [
@@ -149,7 +153,7 @@ Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
             },
             { "if": "{ trigger.data.delete }",  // delete completely the list if empty
                 "init": "{
-                    if (!var[$list_name]) bounce ("'"||$i.list_name||"' did not exist at the first place!");
+                    if (!var[$list_name||"_owner"]) bounce ("'"||$i.list_name||"' did not exist at the first place!");
                     if (var[$list_name||"_items_count"] > 0) bounce ("List must be empty to be deleted, use 'remove_last_item' as much as needed");
                 }",
                 "messages": [
@@ -162,6 +166,52 @@ Agent address: JKAICE7G3HWTNTU4SY6AQC6NIBTNPAIO
 
                             response['message']= $list_name||" delete ^^.";
                         }"
+                    }
+                ]
+            },
+            { "if": "{ !!trigger.data.get_next }", // add a new item at the end of the linked list
+                "init": "{
+                    $item_key = $list_name||"_"||trigger.data.get_next;
+                }",
+                "messages": [
+                    {
+                        "app": "data", "payload": {
+                            "item_name": "{ var[$item_key||"_next_item"] }",
+                            "item_value": "{ var[var[$item_key||"_next_item"]] }"
+                        }
+                    },
+                    {
+                        "app": "payment", "payload": {
+                            "outputs": [
+                                {
+                                    "address": "{ trigger.address }",
+                                    "amount": "{4}"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            { "if": "{ !!trigger.data.get_previous }", // add a new item at the end of the linked list
+                "init": "{
+                    $item_key = $list_name||"_"||trigger.data.get_previous;
+                }",
+                "messages": [
+                    {
+                        "app": "data", "payload": {
+                            "item_name": "{ var[$item_key||"_previous_item"] }",
+                            "item_value": "{ var[var[$item_key||"_previous_item"]] }"
+                        }
+                    },
+                    {
+                        "app": "payment", "payload": {
+                            "outputs": [
+                                {
+                                    "address": "{ trigger.address }",
+                                    "amount": "{4}"
+                                }
+                            ]
+                        }
                     }
                 ]
             },
