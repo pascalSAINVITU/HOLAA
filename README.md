@@ -1,6 +1,6 @@
 # HOLLAA
 Holder of Linked Lists AA
-HOLLAA makes it easier to manipulate small linked list
+HOLLAA makes it easier to manipulate small linked lists
 
 ## use cases / input fields associations
 ### create, add and remove
