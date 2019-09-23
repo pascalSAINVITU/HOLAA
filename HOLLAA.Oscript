@@ -6,8 +6,7 @@ HOLLAA, Holder Of Linked List AA
 Check in explorer: https://testnetexplorer.obyte.org/#0eA8pLQ7z8ZiGzmxDoCI+izcyjuAlwN+MQsG/4x9Wkc=
 Agent address: RIWHUVJMQA5DJHK3AOUK5ZBPFFYW5I3J
 
-Check in explorer: https://testnetexplorer.obyte.org/#oAe1gB3okm01Nc4+fO4egk+3GYZklaiFMUjkWuvQRJE=
-Agent address: X3MVQHTNJ6JKUASR7IT4X7A3WHULKAYC
+ETEP2WGUUWTLOOO5FBUE6RL3DCH447LK
 
 */
     "init": "{
@@ -160,11 +159,12 @@ Agent address: X3MVQHTNJ6JKUASR7IT4X7A3WHULKAYC
                 "init": "{
                     $starting_key = var[$list_name||"_"||trigger.data.get_next];
                     $next_item = !!$starting_key ? var[$starting_key||"_next_item"] : var[$list_name||"_first_item"];
+                    $item_name = substring($next_item, length($list_name) +1);
                 }",
                 "messages": [
                     {
                         "app": "data", "payload": {
-                            "item_name": "{ $next_item }",
+                            "item_name": "{ $item_name }",
                             "item_value": "{ var[$next_item] }",
                             "token": "{ trigger.data.token }" // send back the incoming token 
                         }
@@ -180,11 +180,12 @@ Agent address: X3MVQHTNJ6JKUASR7IT4X7A3WHULKAYC
                 "init": "{
                     $starting_key = var[$list_name||"_"||trigger.data.get_previous];
                     $previous_item = !!$starting_key ? var[$starting_key||"_previous_item"] : var[$list_name||"_last_item"];
+                    $item_name = substring($previous_item, length($list_name) +1);
                 }",
                 "messages": [
                     {
                         "app": "data", "payload": {
-                            "item_name": "{ $previous_item }",
+                            "item_name": "{ $item_name }",
                             "item_value": "{ var[$previous_item] }",
                             "token": "{ trigger.data.token }"// send back the incoming token 
                         }
