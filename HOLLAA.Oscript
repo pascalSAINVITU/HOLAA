@@ -6,7 +6,8 @@ HOLLAA, Holder Of Linked List AA
 Check in explorer: https://testnetexplorer.obyte.org/#0eA8pLQ7z8ZiGzmxDoCI+izcyjuAlwN+MQsG/4x9Wkc=
 Agent address: RIWHUVJMQA5DJHK3AOUK5ZBPFFYW5I3J
 
-ETEP2WGUUWTLOOO5FBUE6RL3DCH447LK
+Check in explorer: https://testnetexplorer.obyte.org/#Y+V2M88j+UZllQ27Wd92ESV/jkWKskSLyRRwtMclOPs=
+Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
 
 */
     "init": "{
@@ -19,10 +20,11 @@ ETEP2WGUUWTLOOO5FBUE6RL3DCH447LK
             $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!");
             $list_owner = var[$list_name||"_owner"] otherwise trigger.address;
             $list_items_count = var[$list_name||"_items_count"] otherwise 0;
-            // access checking
-                $list_is_public = var[$list_name||"_is_public"] otherwise trigger.data.public;
-                if (!$list_is_public) if (trigger.address != $list_owner)
-                    bounce ("You don't own this private list");
+            
+        // access checking
+            $list_is_public = var[$list_name||"_is_public"] otherwise trigger.data.public;
+            if (!$list_is_public) if (trigger.address != $list_owner)
+                bounce ("You don't own this private list");
     }",
     "messages": {
         "cases": [
@@ -176,10 +178,13 @@ ETEP2WGUUWTLOOO5FBUE6RL3DCH447LK
                     }
                 ]
             },
-            { "if": "{ !!trigger.data.get_previous }", // add a new item at the end of the linked list
+            { "if": "{ !!trigger.data.get_previous }", // get teh previous item, value doesnt reffer to existing item we return last
                 "init": "{
                     $starting_key = var[$list_name||"_"||trigger.data.get_previous];
-                    $previous_item = !!$starting_key ? var[$starting_key||"_previous_item"] : var[$list_name||"_last_item"];
+                    $previous_item = !!$starting_key ? 
+                        var[$starting_key||"_previous_item"] otherwise bounce ("Was first item!") : 
+                        var[$list_name||"_last_item"];
+                    
                     $item_name = substring($previous_item, length($list_name) +1);
                 }",
                 "messages": [
