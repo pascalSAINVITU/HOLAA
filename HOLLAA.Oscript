@@ -6,18 +6,23 @@ HOLLAA, Holder Of Linked List AA
 Check in explorer: https://testnetexplorer.obyte.org/#0eA8pLQ7z8ZiGzmxDoCI+izcyjuAlwN+MQsG/4x9Wkc=
 Agent address: RIWHUVJMQA5DJHK3AOUK5ZBPFFYW5I3J
 
-Check in explorer: https://testnetexplorer.obyte.org/#Y+V2M88j+UZllQ27Wd92ESV/jkWKskSLyRRwtMclOPs=
-Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
+Check in explorer: https://testnetexplorer.obyte.org/#LIR08kQm52l+GXNyzPUhsY1oZY+7Gab0MC5yriMk13o=
+Agent address: ZHG6LKRY4SJD3AVSWR74FED5UJ56XBPG
 
+AA validated, complexity = 52, ops = 436
+Check in explorer: https://testnetexplorer.obyte.org/#FFNpcxYkE44iHyWyj4Pf8Wum6Wwrrs3keoGhvOdQYLc=
+Agent address: YNB262XRUZYZTG5YSTS4QCWE4C6ZEEP2
 */
     "init": "{
         // FOREVER CONSTANT
             $AA_NAME= "HOLLAA"; // Holder Of Linked List AA;
             $AA_OWNER = "O7NYCFUL5XIJTYE3O4MKGMGMTN6ATQAJ"; 
             $INSTRUCTIONS = "For every operation 'list_name = <list name>' is needed. To add an element at the end of the list use ', 'add = <item name>' and optionaly 'value = <item value>'. To remove 'remove = <item name>'. You can insert with 'insert = <item name>', 'after/before = <ref item name>' and optionaly 'value = <item value>'. When the list s empty, you can delete it with 'delete = true'. If you need to iterate you might find useful to be triggered back with the next or previous item, use 'get_next/get_previous = <actual item name>'.";
+           
 
         // get info from state or input data
-            $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!");
+            $inputs = " For the moment I received: "||json_stringify(trigger.data)||json_stringify(trigger.output[[asset=base]]);
+            $list_name = trigger.data.list_name otherwise bounce ("Need 'list = <list_name>'!"||$inputs);
             $list_owner = var[$list_name||"_owner"] otherwise trigger.address;
             $list_items_count = var[$list_name||"_items_count"] otherwise 0;
             
@@ -30,37 +35,59 @@ Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
         "cases": [
             { "if": "{ !!trigger.data.add }", // add a new item at the end of the linked list
                 "init": "{
-                    $item_key = $list_name||"_"||trigger.data.add;
+                    // get the item and its key used for state var 
+                        $item = trigger.data.add;       
+                        $item_key = $list_name||"_"||$item;
                 }",
                 "messages": [
                     {
                         "app": "state", "state": "{
-                            // update list state
+                            // update list properties
                                 var[$list_name||"_owner"] = $list_owner;
                                 var[$list_name||"_items_count"] = $list_items_count + 1;
                                 var[$list_name||"_is_public"] = $list_is_public;
 
-                            // update last item
-                                $last_item = var[$list_name||"_last_item"];
-                                if (!!$last_item)
-                                    var[$last_item||"_next_item"] = $item_key;
-                                var[$list_name||"_last_item"] = $item_key;
-                                if (var[$list_name||"_items_count"] == 1 ) var[$list_name||"_first_item"] = $item_key;
+                            // update previously last item
+                                $last_item = var[$list_name||"_last_item"];  
+                                $last_item_key = $list_name||"_"||$last_item;
+                                if (!!$last_item) var[$last_item_key||"_next_item"] = $item;
+
+                            // if this is the first item we have to set the first_item state var
+                                if (var[$list_name||"_items_count"] == 1 ) var[$list_name||"_first_item"] = $item;
 
                             // add new item at the end of the linked list
+                                var[$list_name||"_last_item"] = $item;
                                 var[$item_key] = trigger.data.value otherwise true;
                                 var[$item_key||"_previous_item"] = $last_item;
                                 var[$item_key||"_next_item"] = false;
 
-                            response['message']= $item_key||" added ^^.";
+                            response['message']= $item||" added ^^.";
                         }"
                     }
                 ]
             },
             { "if": "{ !!trigger.data.remove }", // remove a given key from the linked list
                 "init": "{
-                    if (!(var[$list_name||"_owner"])) bounce ("'"||$list_name||"' did not exist !");
-                    $item_key = $list_name||"_"||trigger.data.remove;
+                    // get the item and its key used for state var 
+                        $item = trigger.data.remove;      
+                        $item_key = $list_name||"_"||$item;
+
+                    // check that the list exist
+                        if (!(var[$list_name||"_owner"]))
+                            bounce ("'"||$list_name||"' did not exist !");
+
+                    // check if item exist       
+                        if (!(var[$item_key]))
+                            bounce ($item||" did not exist !");
+
+                    // get the previous items
+                        $previous_item = var[$item_key||"_previous_item"];  
+                        $previous_item_key = $list_name||"_"||$previous_item;
+
+                    // get the next items
+                        $next_item = var[$item_key||"_next_item"];          
+                        $next_item_key = $list_name||"_"||$next_item;
+
                 }",
                 "messages": [
                     {
@@ -69,45 +96,51 @@ Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
                                 var[$list_name||"_items_count"] = $list_items_count - 1;
                                 
                             // update link in previous item
-                                $previous_item = var[$item_key||"_previous_item"];
-                                var[$previous_item||"_next_item"] = $next_item;
+                                var[$previous_item_key||"_next_item"] = $next_item;
 
                             // update link in next item
-                                $next_item = var[$item_key||"_next_item"];
-                                var[$next_item||"_previous_item"] = $previous_item;
+                                var[$next_item_key||"_previous_item"] = $previous_item;
 
                             // remove item
                                 var[$item_key] = false;
                                 var[$item_key||"_previous_item"] = false;
                                 var[$item_key||"_next_item"] = false;
 
-                            response['message']= $item_key||" removed ^^.";
+                            response['message']= trigger.data.remove||" removed ^^.";
                         }"
                     }
                 ]
             },  
             { "if": "{ !!trigger.data.insert }", // add a new item at the end of the linked list
                 "init": "{
-                    $item_key = $list_name||"_"||trigger.data.insert;
+                    // check that the list exist
+                        if (!(var[$list_name||"_owner"]))
+                            bounce ("'"||$list_name||"' did not exist !");
 
-                    // identify previosu and next items
+                    // get the item and its key used for state var 
+                        $item = trigger.data.insert;
+                        $item_key = $list_name||"_"||$item;
+
+                    // identify previous and next items
                         if (!!trigger.data.after)
                         {
-                            $previous_item = $list_name||"_"||trigger.data.after;
-                            if (!var[$previous_item]) bounce ($previous_item||" do NOT exist !");
-                            $next_item = var[$previous_item||"_next_item"];
+                            $previous_item = trigger.data.after;
+                            $previous_item_key = $list_name||"_"||$previous_item;
+                            if (!var[$previous_item_key]) bounce ($previous_item||" do NOT exist !");
+                            $next_item = var[$previous_item_key||"_next_item"];
                         }
                         else
                         {
                             if (!!trigger.data.before)
                             {
-                                $next_item = $list_name||"_"||trigger.data.before;
-                                if (!var[$next_item]) bounce ($next_item||" do NOT exist !");
-                                $previous_item = var[$next_item||"_previous_item"];
+                                $next_item = trigger.data.before;
+                                $next_item_key = $list_name||"_"||$next_item;
+                                if (!var[$next_item_key]) bounce ($next_item||" do NOT exist !");
+                                $previous_item_key = var[$next_item_key||"_previous_item"];
                             }
                             else
                             {
-                                bounce ("Please, specify 'after' or 'before'");
+                                bounce ("Please, specify 'after' or 'before' = <existing item>");
                             }
                         }
                 }",
@@ -118,31 +151,36 @@ Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
                                 var[$list_name||"_items_count"] = $list_items_count + 1;
 
                             // update previous item link
-                                if (!!$previous_item)
-                                    var[$previous_item||"_next_item"] = $item_key;
+                                if (!!$previous_item_key)
+                                    var[$previous_item_key||"_next_item"] = $item;
                                 else
-                                    var[$list_name||"_first_item"] = $item_key;
+                                    var[$list_name||"_first_item"] = $item;
 
                             // update next item link
-                                if (!!$next_item)
-                                    var[$next_item||"_previous_item"] = $item_key;
+                                if (!!$next_item_key)
+                                    var[$next_item_key||"_previous_item"] = $item;
                                 else
-                                    var[$list_name||"_last_item"] = $item_key;
+                                    var[$list_name||"_last_item"] = $item;
 
                             // add new item 
                                 var[$item_key] = trigger.data.value otherwise true;
                                 var[$item_key||"_previous_item"] = $previous_item;
                                 var[$item_key||"_next_item"] = $next_item;
 
-                            response['message']= $item_key||" added ^^.";
+                            response['message'] = $item||" added ^^.";
                         }"
                     }
                 ]
             },
             { "if": "{ trigger.data.delete }",  // delete completely the list if empty
                 "init": "{
-                    if (!var[$list_name||"_owner"]) bounce ("'"||$i.list_name||"' did not exist at the first place!");
-                    if (var[$list_name||"_items_count"] > 0) bounce ("List must be empty to be deleted, use 'remove_last_item' as much as needed");
+                    // check if list exist
+                        if (!var[$list_name||"_owner"]) 
+                            bounce ("'"||$i.list_name||"' did not exist at the first place!");
+
+                    // check that the list is empty so taht we can delete it without leaving anything in AA state var
+                        if (var[$list_name||"_items_count"] > 0) 
+                            bounce ("List must be empty to be deleted, use 'remove_last_item' as much as needed");
                 }",
                 "messages": [
                     {
@@ -157,17 +195,28 @@ Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
                     }
                 ]
             },
-            { "if": "{ !!trigger.data.get_next }", // add a new item at the end of the linked list
+            { "if": "{ !!trigger.data.get_next }", // get the next item as a trigger
                 "init": "{
-                    $starting_key = var[$list_name||"_"||trigger.data.get_next];
-                    $next_item = !!$starting_key ? var[$starting_key||"_next_item"] : var[$list_name||"_first_item"];
-                    $item_name = substring($next_item, length($list_name) +1);
+                    // check that the list exist
+                        if (!(var[$list_name||"_owner"]))
+                            bounce ("'"||$list_name||"' did not exist !");
+
+                    // get next item from specify one or very first one.
+                        $next_from_item = trigger.data.get_next;
+                        $next_from_item_key = $list_name||"_"||$next_from_item;
+
+                        // if the specify item from which starting exist
+                            $next_item = !!var[$next_from_item_key] ?     
+                                // return the next item of the list 
+                                var[$next_from_item_key||"_next_item"] otherwise bounce ("Was last item!"):
+                                // or start from the first item of the list
+                                var[$list_name||"_first_item"];             
                 }",
                 "messages": [
                     {
                         "app": "data", "payload": {
-                            "item_name": "{ $item_name }",
-                            "item_value": "{ var[$next_item] }",
+                            "item_name": "{ $next_item }",
+                            "item_value": "{ var[$list_name||$next_item] }",
                             "token": "{ trigger.data.token }" // send back the incoming token 
                         }
                     },
@@ -175,23 +224,37 @@ Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
                         "app": "payment", "payload": {  "outputs": [
                             { "address": "{ trigger.address }", "amount": "{4}" }
                         ] }
+                    },
+                    {
+                        "app": "state",
+                        "state": "{
+                            response['message']= $next_item||" sent ^^.";
+                        }"
                     }
                 ]
             },
-            { "if": "{ !!trigger.data.get_previous }", // get teh previous item, value doesnt reffer to existing item we return last
+            { "if": "{ !!trigger.data.get_previous }", // get the previous item as a trigger
                 "init": "{
-                    $starting_key = var[$list_name||"_"||trigger.data.get_previous];
-                    $previous_item = !!$starting_key ? 
-                        var[$starting_key||"_previous_item"] otherwise bounce ("Was first item!") : 
-                        var[$list_name||"_last_item"];
-                    
-                    $item_name = substring($previous_item, length($list_name) +1);
+                    // check that the list exist
+                        if (!(var[$list_name||"_owner"]))
+                            bounce ("'"||$list_name||"' did not exist !");
+
+                    // get previous item from specify one or very last one.
+                        $previous_from_item = trigger.data.get_previous;
+                        $previous_from_item_key = $list_name||"_"||$previous_from_item;
+
+                        // if the specify item from which starting exist
+                            $previous_item = !!var[$previous_from_item_key] ?       
+                                // return the next item of the list
+                                var[$previous_from_item_key||"_previous_item"] otherwise bounce ("Was first item!") :  
+                                // or start from the last item of the list  
+                                var[$list_name||"_last_item"];
                 }",
                 "messages": [
                     {
                         "app": "data", "payload": {
-                            "item_name": "{ $item_name }",
-                            "item_value": "{ var[$previous_item] }",
+                            "item_name": "{ $previous_item }",
+                            "item_value": "{ var[$list_name||$previous_item] }",
                             "token": "{ trigger.data.token }"// send back the incoming token 
                         }
                     },
@@ -199,11 +262,19 @@ Agent address: HMEHXLY5NVLJYRZPUCGKTAM4P34P6ANQ
                         "app": "payment", "payload": { "outputs": [
                             { "address": "{ trigger.address }", "amount": "{4}" }
                         ] }
+                    },
+                    {
+                        "app": "state",
+                        "state": "{
+                            response['message']= $previous_item||" sent ^^.";
+                        }"
                     }
                 ]
             },
             {   // bounce isntructions
-                "messages": [ { "app": "state", "state": "{ bounce ($INSTRUCTIONS);}" } ]  
+                "messages": [ { "app": "state", "state": "{ 
+                    bounce ($INSTRUCTIONS||$inputs);
+                }" } ]  
             }
         ]
     }
